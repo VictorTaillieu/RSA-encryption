@@ -5,11 +5,11 @@ from sys import argv, exit
 from getopt import getopt, GetoptError
 
 
-def generateKey(size):
+def generateKey(size, password):
     print("Generating RSA public/private keys...")
     key = RSA.generate(size)
 
-    private_key = key.export_key()  # PEM format
+    private_key = key.export_key(passphrase=password)  # PEM format
     with open("private.pem", "wb") as private_file:
         private_file.write(private_key)
 
@@ -18,13 +18,17 @@ def generateKey(size):
         public_file.write(public_key)
 
 
-def importKey(key_file):
-    key = RSA.import_key(open(key_file).read())
+def importKey(key_file, password):
+    try:
+        key = RSA.import_key(open(key_file).read(), password)
+    except ValueError:
+        print("Incorrect password")
+        exit()
     return PKCS1_OAEP.new(key)  # padding
 
 
 def encrypt():
-    public_key = importKey("public.pem")
+    public_key = importKey("public.pem", password)
 
     with open("input.txt", "r") as input_file:
         message = input_file.read().encode()  # UTF-8
@@ -36,8 +40,8 @@ def encrypt():
         output_file.write(b64encode(encrypted_text))
 
 
-def decrypt():
-    private_key = importKey("private.pem")
+def decrypt(password):
+    private_key = importKey("private.pem", password)
 
     with open("input.txt", "rb") as input_file:
         encrypted_text = input_file.read()
@@ -50,22 +54,27 @@ def decrypt():
 
 
 def help():
-    print("rsa.py (-g <key_size>) -e/d")
+    print("rsa.py (-g <key_size>) -e/d (-p <password>)")
     exit()
 
 
 try:
-    opts, args = getopt(argv[1:], "hg:ed")
+    opts, args = getopt(argv[1:], "hg:edp:")
 except GetoptError:
     help()
+
+password = None
+for opt, arg in opts:
+    if opt == "-p":
+        password = arg
 
 for opt, arg in opts:
     if opt == "-h":
         help()
     elif opt == "-g":
         size = int(arg)
-        generateKey(size)
+        generateKey(size, password)
     elif opt == "-e":
         encrypt()
     elif opt == "-d":
-        decrypt()
+        decrypt(password)
