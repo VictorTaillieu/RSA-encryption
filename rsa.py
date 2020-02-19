@@ -46,11 +46,11 @@ def decrypt():
     message = private_key.decrypt(b64decode(encrypted_text))
 
     with open("output.txt", "wb") as output_file:
-        output_file.write(message)  # .decode() ?
+        output_file.write(message)
 
 
 def help():
-    print("rsa.py -g <key_size> -e/d")
+    print("rsa.py (-g <key_size>) -e/d")
     exit()
 
 
