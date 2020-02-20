@@ -24,24 +24,29 @@ def importKey(key_file, password):
     except ValueError:
         print("Incorrect password")
         exit()
-    return PKCS1_OAEP.new(key)  # padding
+    return PKCS1_OAEP.new(key), key.size_in_bytes()  # padding
 
 
 def encrypt():
-    public_key = importKey("public.pem", password)
+    public_key, key_size = importKey("public.pem", password)
 
     with open("input.txt", "r") as input_file:
         message = input_file.read().encode()  # UTF-8
 
     print("Encrypting the message...")
-    encrypted_text = public_key.encrypt(message)
+    try:
+        encrypted_text = public_key.encrypt(message)
+    except ValueError:
+        print("Message is too long ({} characters), max length is {} characters".format(
+            len(message), key_size - 42))
+        exit()
 
     with open("output.txt", "wb") as output_file:
         output_file.write(b64encode(encrypted_text))
 
 
 def decrypt(password):
-    private_key = importKey("private.pem", password)
+    private_key, key_size = importKey("private.pem", password)
 
     with open("input.txt", "rb") as input_file:
         encrypted_text = input_file.read()
