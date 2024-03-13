@@ -1,8 +1,9 @@
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
 from base64 import b64decode, b64encode
+from getopt import GetoptError, getopt
 from sys import argv, exit
-from getopt import getopt, GetoptError
+
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
 
 
 def generateKey(size, password):
